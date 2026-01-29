@@ -3,7 +3,7 @@ services:
     name: f1-guessr-api
     runtime: node
     plan: free
-    region: oregon
+    region: frankfurt
     buildCommand: npm install && npm run -w @f1-guessr/api build
     startCommand: npm run -w @f1-guessr/api start
     envVars:
@@ -19,7 +19,7 @@ services:
   - type: static
     name: f1-guessr-web
     plan: free
-    region: oregon
+    region: frankfurt
     buildCommand: npm install && npm run -w @f1-guessr/web build
     staticPublishPath: apps/web/dist
     envVars:
@@ -29,4 +29,4 @@ services:
 databases:
   - name: f1-guessr-db
     plan: free
-    region: oregon
+    region: frankfurt
