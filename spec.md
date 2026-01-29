@@ -25,6 +25,7 @@
 - **Guest**: view next race info and public post‑race tables.
 - **Authenticated user**: vote, edit vote before lock, view own history.
 - **Admin**: manage races, lock/unlock voting, enter official results, trigger re‑scoring.
+- **Group admin**: manages a private friend group (membership + settings).
 
 ## 5. Core User Stories
 1. As a user, I see the next race name, circuit, and session times.
@@ -33,6 +34,7 @@
 4. As a user, I see my vote immediately after submitting.
 5. As a user, I see all users’ votes only after the race is finalized.
 6. As a user, I can view standings and history for previous races.
+7. As a user, I can join or create a group to keep votes and standings separate.
 
 ## 6. Functional Requirements
 
@@ -46,10 +48,12 @@
 - One vote per user per race.
 - Vote edits allowed until Q1 start time.
 - After lock: vote is read‑only.
+- Votes are scoped to a **group** (default group if none selected).
 
 ### 6.3 Visibility Rules
 - Before race finalized: users can see only their own vote.
 - After race finalized: show a full table of all users’ votes and scores.
+- Visibility is **within the same group only**.
 
 ### 6.4 Scoring
 - Exact position match only.
@@ -86,11 +90,13 @@
 
 ## 7. Data Model (high‑level)
 - **User**: id, email, display_name, auth_provider, role
+- **Group**: id, name, owner_id, created_at
+- **GroupMember**: group_id, user_id, role (member/admin), joined_at
 - **Race**: id, season, round, name, circuit, sessions[]
 - **Session**: race_id, type (FP/Quali/Race), start_time
-- **Vote**: user_id, race_id, ranking[10], updated_at
+- **Vote**: user_id, race_id, group_id, ranking[10], updated_at
 - **Result**: race_id, final_positions[20], updated_at
-- **Score**: user_id, race_id, points, rank_change
+- **Score**: user_id, race_id, group_id, points, rank_change
 - **Achievement**: user_id, code, race_id, awarded_at
 
 ## 8. System Behavior
