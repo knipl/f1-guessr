@@ -16,7 +16,7 @@ services:
           name: f1-guessr-db
           property: connectionString
 
-  - type: static
+  - type: static_site
     name: f1-guessr-web
     plan: free
     region: frankfurt
