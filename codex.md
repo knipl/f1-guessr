@@ -16,3 +16,4 @@ Use this file to keep a running list of instructions for how Codex should work o
 - Auth: Supabase Auth.
 - Database: Postgres with Prisma.
 - Group invites expire.
+- API E2E tests: run with `RUN_E2E=true npm run -w @f1-guessr/api test`.
