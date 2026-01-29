@@ -26,6 +26,7 @@
 - **Authenticated user**: vote, edit vote before lock, view own history.
 - **Admin**: manage races, lock/unlock voting, enter official results, trigger re‑scoring.
 - **Group admin**: manages a private friend group (membership + settings).
+- **Group creation**: only admins can create groups (users cannot create their own groups).
 
 ## 5. Core User Stories
 1. As a user, I see the next race name, circuit, and session times.
@@ -35,6 +36,7 @@
 5. As a user, I see all users’ votes only after the race is finalized.
 6. As a user, I can view standings and history for previous races.
 7. As a user, I can join or create a group to keep votes and standings separate.
+8. As a user, I can join a group using an invite link.
 
 ## 6. Functional Requirements
 
@@ -54,6 +56,7 @@
 - Before race finalized: users can see only their own vote.
 - After race finalized: show a full table of all users’ votes and scores.
 - Visibility is **within the same group only**.
+- Groups are **hidden** from users who belong to a single group; no group switcher is shown.
 
 ### 6.4 Scoring
 - Exact position match only.
@@ -92,6 +95,7 @@
 - **User**: id, email, display_name, auth_provider, role
 - **Group**: id, name, owner_id, created_at
 - **GroupMember**: group_id, user_id, role (member/admin), joined_at
+- **GroupInvite**: id, group_id, token, expires_at, created_by
 - **Race**: id, season, round, name, circuit, sessions[]
 - **Session**: race_id, type (FP/Quali/Race), start_time
 - **Vote**: user_id, race_id, group_id, ranking[10], updated_at
