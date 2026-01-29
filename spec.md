@@ -1,0 +1,132 @@
+# F1 Guessing Game – Functional Specification
+
+## 1. Goals
+- Let users predict top‑10 finish order before qualifying starts.
+- Lock predictions at Q1 start time.
+- Show all users’ votes only after the race is finalized.
+- Provide post‑race standings with points, gaps, and position change.
+- Provide admin overrides for all critical data.
+
+## 2. Tech Stack
+- Frontend: React.
+- Backend: TypeScript using a maintainable framework.
+
+### Backend framework recommendation
+- **NestJS (TypeScript)** for structured modules, DI, validation, and long‑term maintainability.
+  - Pros: strong conventions, great for API + scheduled jobs, easy testing.
+  - Alternatives: **Fastify + Zod** (lighter), or **tRPC + Prisma** (type‑safe if you want end‑to‑end types).
+
+## 3. Data Sources
+- Primary schedule/results: **Jolpica (Ergast replacement)**.
+- Live data: **not required** for this version.
+- Admin panel supports manual entry of all race/session data if API fails.
+
+## 4. Users & Permissions
+- **Guest**: view next race info and public post‑race tables.
+- **Authenticated user**: vote, edit vote before lock, view own history.
+- **Admin**: manage races, lock/unlock voting, enter official results, trigger re‑scoring.
+
+## 5. Core User Stories
+1. As a user, I see the next race name, circuit, and session times.
+2. As a user, I can submit a top‑10 prediction before Q1 starts.
+3. As a user, I can edit my prediction until Q1 starts.
+4. As a user, I see my vote immediately after submitting.
+5. As a user, I see all users’ votes only after the race is finalized.
+6. As a user, I can view standings and history for previous races.
+
+## 6. Functional Requirements
+
+### 6.1 Next Race & Session Times
+- Show next GP name, circuit, and session schedule.
+- Use Jolpica schedule data; cache locally.
+- If API fails, admin can input race + session times manually.
+
+### 6.2 Voting
+- Vote is ordered positions P1–P10.
+- One vote per user per race.
+- Vote edits allowed until Q1 start time.
+- After lock: vote is read‑only.
+
+### 6.3 Visibility Rules
+- Before race finalized: users can see only their own vote.
+- After race finalized: show a full table of all users’ votes and scores.
+
+### 6.4 Scoring
+- Exact position match only.
+- Points are based on official F1 points:
+  - P1=25, P2=18, P3=15, P4=12, P5=10, P6=8, P7=6, P8=4, P9=2, P10=1
+- Total race score = sum of points for exact matches.
+
+### 6.5 Post‑Race Results & Standings
+- After a configurable delay (default 2 hours) the race is finalized.
+- Compute and display:
+  - Per‑race scores
+  - Season leaderboard
+  - Position change vs previous race
+  - Point gaps vs leader
+- Provide a race history view with prior races.
+
+### 6.6 Admin Panel
+- CRUD races, sessions, and lock times.
+- Override session times (e.g., if schedule changes).
+- Manually input or correct official race results.
+- Trigger re‑scoring for a race or entire season.
+- Toggle finalized state if needed.
+
+### 6.7 Authentication
+- Email/password and OAuth providers.
+- Voting history tied to authenticated users.
+
+### 6.8 Achievements (initial set)
+- **Perfect 10**: all top‑10 correct.
+- **Champion’s Pick**: P1 correct.
+- **Podium Prophet**: top‑3 all correct.
+- **Hot Streak**: top‑3 leaderboard position for 3 consecutive races.
+- **Comeback**: improved leaderboard position by ≥5 between races.
+
+## 7. Data Model (high‑level)
+- **User**: id, email, display_name, auth_provider, role
+- **Race**: id, season, round, name, circuit, sessions[]
+- **Session**: race_id, type (FP/Quali/Race), start_time
+- **Vote**: user_id, race_id, ranking[10], updated_at
+- **Result**: race_id, final_positions[20], updated_at
+- **Score**: user_id, race_id, points, rank_change
+- **Achievement**: user_id, code, race_id, awarded_at
+
+## 8. System Behavior
+- Voting lock is automated at Q1 start time.
+- If the Q1 time changes, update lock time and notify users.
+- Cache API responses and use admin overrides when needed.
+
+## 9. Non‑Functional Requirements
+- Reliable voting lock and audit logs for edits.
+- Reasonable latency for page loads (<2s typical).
+- Mobile‑friendly UI.
+- Data integrity checks when results are entered or updated.
+
+## 10. API & Admin Flow Appendix (draft)
+
+### 10.1 Public API (read‑only)
+- `GET /api/next-race` → next race + session times.
+- `GET /api/races` → list races (season, round, name, status).
+- `GET /api/races/:raceId/standings` → season leaderboard after race finalization.
+- `GET /api/races/:raceId/votes` → all votes table (only after race is finalized).
+
+### 10.2 Authenticated API
+- `POST /api/races/:raceId/vote` → create or replace vote (only before Q1 lock).
+- `GET /api/me/votes` → voting history for current user.
+- `GET /api/me/votes/:raceId` → current user’s vote for a race.
+
+### 10.3 Admin API
+- `POST /api/admin/races` → create race.
+- `PATCH /api/admin/races/:raceId` → update race/session times/lock time.
+- `POST /api/admin/races/:raceId/results` → set or replace official results.
+- `POST /api/admin/races/:raceId/finalize` → finalize race and trigger scoring.
+- `POST /api/admin/races/:raceId/recalculate` → recompute scores/standings.
+
+### 10.4 Admin Panel Flow
+- Create or import race schedule.
+- Verify session times and lock times.
+- When race ends, input official results or verify API import.
+- Finalize race → scores + standings update.
+- If penalties or changes occur, update results and recalculate.
