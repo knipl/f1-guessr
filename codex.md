@@ -11,3 +11,8 @@ Use this file to keep a running list of instructions for how Codex should work o
 - After each feature/part, ask for feedback and avoid doing too much at once.
 - Always display session times in the user's local time zone.
 - Keep this file updated with new working rules; ask before adding new entries.
+
+## Auth & Data Decisions
+- Auth: Supabase Auth.
+- Database: Postgres with Prisma.
+- Group invites expire.
