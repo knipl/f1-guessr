@@ -16,10 +16,10 @@ services:
           name: f1-guessr-db
           property: connectionString
 
-  - type: static_site
+  - type: web
     name: f1-guessr-web
+    runtime: static
     plan: free
-    region: frankfurt
     buildCommand: npm install && npm run -w @f1-guessr/web build
     staticPublishPath: apps/web/dist
     envVars:
