@@ -175,3 +175,25 @@
 - When race ends, input official results or verify API import.
 - Finalize race → scores + standings update.
 - If penalties or changes occur, update results and recalculate.
+
+## 11. Deployment (Render)
+
+### 11.1 Services
+- **Web**: Render Static Site.
+- **API**: Render Web Service (Node 20+).
+- **DB**: Render Postgres (free tier).
+
+### 11.2 Build & Start Commands
+- Web: `npm install` → `npm run -w @f1-guessr/web build`
+- API: `npm install` → `npm run -w @f1-guessr/api build`
+- API Start: `npm run -w @f1-guessr/api start`
+
+### 11.3 Environment Variables
+- `DATABASE_URL` for Postgres.
+- `SESSION_SECRET` or equivalent for auth.
+- `API_BASE_URL` for the web app (Render URL for the API).
+
+### 11.4 Notes & Limits (Free Tier)
+- Free web services can suspend after monthly usage caps.
+- Builds are limited; avoid frequent redeploys.
+- Use manual admin overrides if the schedule API is unavailable.
