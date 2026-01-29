@@ -104,6 +104,51 @@
 - Mobile‑friendly UI.
 - Data integrity checks when results are entered or updated.
 
+## 9.1 Scoring & Standings Algorithm (draft)
+
+### 9.1.1 Per‑Race Scoring
+- Inputs:
+  - Official race result positions P1–P10.
+  - User vote positions P1–P10.
+- Scoring rules:
+  - Only exact position matches score points.
+  - Points by position: P1=25, P2=18, P3=15, P4=12, P5=10, P6=8, P7=6, P8=4, P9=2, P10=1.
+- Algorithm:
+  1) Initialize `score = 0`.
+  2) For each position `pos` in 1..10:
+     - If `vote[pos] == result[pos]`, add points for `pos`.
+  3) Store `score` as the user’s race score.
+- Edge cases:
+  - If a race is not finalized, do not compute or display scores.
+  - If the official result is updated (penalties), recompute all race scores.
+
+### 9.1.2 Season Standings
+- Inputs:
+  - Per‑race scores for each user (only finalized races).
+- Algorithm:
+  1) For each user, sum all finalized race scores to get `total_points`.
+  2) Sort users by `total_points` descending.
+  3) Tie‑breakers:
+     1. Higher number of exact P1 matches across finalized races.
+     2. Higher number of exact P2 matches, then P3, ... P10.
+     3. Most recent race score (higher wins).
+     4. If still tied, shared position.
+- Output fields:
+  - `rank`, `user`, `total_points`, `gap_to_leader`, `position_change`.
+
+### 9.1.3 Gaps & Position Change
+- Gap to leader:
+  - `gap = leader_total_points - user_total_points`.
+- Position change (per race):
+  1) Compute standings after previous finalized race.
+  2) Compute standings after current finalized race.
+  3) `position_change = previous_rank - current_rank`.
+     - Positive value means moved up; negative means moved down.
+
+### 9.1.4 Result Finalization Window
+- Default finalization delay: 2 hours after race end.
+- Admin can override finalization time or force re‑finalize if penalties occur.
+
 ## 10. API & Admin Flow Appendix (draft)
 
 ### 10.1 Public API (read‑only)
