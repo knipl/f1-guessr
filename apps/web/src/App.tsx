@@ -1,16 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
+import InviteNotice from './components/InviteNotice';
+import VotingEditor from './components/VotingEditor';
+import { useSupabaseSession } from './auth/useSupabaseSession';
+import {
+  Group,
+  useGroupResults,
+  useGroups,
+  useMyVote,
+  useNextRace,
+  useStandings,
+  submitVote
+} from './api/hooks';
 import {
   mockAchievements,
   mockDrivers,
-  mockGroups,
-  mockNextRace,
   mockRaceHistory,
   mockStandings,
   mockVotesTable
 } from './mockData';
 import './index.css';
 
-function formatDate(value: string) {
+function formatDate(value?: string) {
+  if (!value) return 'TBD';
   const date = new Date(value);
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
@@ -18,7 +29,8 @@ function formatDate(value: string) {
   }).format(date);
 }
 
-function formatCountdown(target: Date) {
+function formatCountdown(target?: Date) {
+  if (!target) return 'TBD';
   const diff = target.getTime() - Date.now();
   if (diff <= 0) return 'Locked';
 
@@ -32,9 +44,28 @@ function formatCountdown(target: Date) {
   return `${minutes}m`;
 }
 
+function resolveGroupName(groups: Group[] | null) {
+  if (!groups || groups.length === 0) return 'Your Group';
+  if (groups.length === 1) return groups[0].name;
+  return 'Multiple Groups';
+}
+
 export default function App() {
-  const group = mockGroups[0];
-  const q1Start = useMemo(() => new Date(mockNextRace.q1StartTime), []);
+  const { session } = useSupabaseSession();
+  const { data: groups } = useGroups();
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const { data: nextRace } = useNextRace();
+  const { data: standings } = useStandings(activeGroupId ?? undefined);
+  const { data: vote } = useMyVote(nextRace?.id, activeGroupId ?? undefined);
+  const { data: groupResults } = useGroupResults(nextRace?.id, activeGroupId ?? undefined);
+
+  useEffect(() => {
+    if (!activeGroupId && groups && groups.length > 0) {
+      setActiveGroupId(groups[0].id);
+    }
+  }, [activeGroupId, groups]);
+
+  const q1Start = useMemo(() => (nextRace ? new Date(nextRace.q1StartTime) : undefined), [nextRace]);
   const [countdown, setCountdown] = useState(() => formatCountdown(q1Start));
 
   useEffect(() => {
@@ -47,26 +78,53 @@ export default function App() {
 
   const isLocked = countdown === 'Locked';
 
+  const groupName = resolveGroupName(groups ?? null);
+  const drivers = mockDrivers;
+  const ranking = vote?.ranking ?? mockDrivers;
+
+  const handleSaveVote = async (rankingDraft: string[]) => {
+    if (!nextRace || !activeGroupId) return;
+    await submitVote({
+      raceId: nextRace.id,
+      groupId: activeGroupId,
+      ranking: rankingDraft
+    });
+  };
+
   return (
     <main className="page">
       <header className="hero">
         <div>
           <p className="tag">F1 Guessr</p>
-          <h1>{group.name}</h1>
+          <div className="group-row">
+            <h1>{groupName}</h1>
+            {groups && groups.length > 1 && (
+              <select
+                value={activeGroupId ?? ''}
+                onChange={(event) => setActiveGroupId(event.target.value)}
+              >
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <p className="sub">Predict the top 10 before Q1. Edit until lock.</p>
         </div>
         <div className="race-card">
           <p className="label">Next race</p>
-          <h2>{mockNextRace.name}</h2>
-          <p className="meta">{mockNextRace.circuit}</p>
+          <h2>{nextRace?.name ?? 'Loading…'}</h2>
+          <p className="meta">{nextRace?.circuit ?? 'Fetching schedule'}</p>
           <div className="times">
             <div>
               <span>Q1 (local)</span>
-              <strong>{formatDate(mockNextRace.q1StartTime)}</strong>
+              <strong>{formatDate(nextRace?.q1StartTime)}</strong>
             </div>
             <div>
               <span>Race (local)</span>
-              <strong>{formatDate(mockNextRace.raceStartTime)}</strong>
+              <strong>{formatDate(nextRace?.raceStartTime)}</strong>
             </div>
           </div>
           <div className="lock-row">
@@ -76,26 +134,10 @@ export default function App() {
         </div>
       </header>
 
+      {!session && <InviteNotice />}
+
       <section className="card">
-        <div className="card-head">
-          <div>
-            <h2>Your vote</h2>
-            <p className="sub">{isLocked ? 'Voting locked at Q1 start.' : 'Voting open until Q1.'}</p>
-          </div>
-          <button className="primary" disabled={isLocked}>
-            {isLocked ? 'Locked' : 'Edit picks'}
-          </button>
-        </div>
-        <div className="grid">
-          {mockDrivers.map((driver, index) => (
-            <div key={driver} className="pick">
-              <span className="pos" data-testid="vote-position">
-                P{index + 1}
-              </span>
-              <span>{driver}</span>
-            </div>
-          ))}
-        </div>
+        <VotingEditor drivers={drivers} ranking={ranking} locked={isLocked} onSave={handleSaveVote} />
       </section>
 
       <section className="card" data-testid="season-standings">
@@ -110,12 +152,12 @@ export default function App() {
             <span>Gap</span>
             <span>Δ</span>
           </div>
-          {mockStandings.map((row) => (
-            <div key={row.user} className="table-row four">
-              <span>{row.user}</span>
+          {(standings ?? mockStandings).map((row: any) => (
+            <div key={row.user ?? row.userId} className="table-row four">
+              <span>{row.user ?? row.name}</span>
               <span>{row.points}</span>
-              <span>{row.gap === 0 ? 'Leader' : `-${row.gap}`}</span>
-              <span>{row.change}</span>
+              <span>{row.gap === 0 ? 'Leader' : `-${row.gap ?? 0}`}</span>
+              <span>{row.change ?? '+0'}</span>
             </div>
           ))}
         </div>
@@ -168,11 +210,11 @@ export default function App() {
             <span>Top 10 picks</span>
             <span>Score</span>
           </div>
-          {mockVotesTable.map((row) => (
-            <div key={row.user} className="table-row">
-              <span>{row.user}</span>
-              <span className="picks">{row.picks.join(' · ')}</span>
-              <span className="score">{row.score}</span>
+          {(groupResults ?? mockVotesTable).map((row: any) => (
+            <div key={row.user?.id ?? row.user} className="table-row">
+              <span>{row.user?.displayName ?? row.user?.email ?? row.user}</span>
+              <span className="picks">{row.picks?.join(' · ') ?? '—'}</span>
+              <span className="score">{row.points ?? row.score}</span>
             </div>
           ))}
         </div>

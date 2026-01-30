@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { OpenF1Service } from '../openf1/openf1.service';
 
 @Injectable()
 export class RacesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly openF1Service: OpenF1Service
+  ) {}
 
   async listRaces() {
     return this.prisma.race.findMany({
@@ -12,6 +16,10 @@ export class RacesService {
   }
 
   async getNextRace() {
+    const year = new Date().getFullYear();
+    await this.openF1Service.syncSeason(year);
+    await this.openF1Service.syncSeason(year + 1);
+
     const now = new Date();
     const race = await this.prisma.race.findFirst({
       where: {

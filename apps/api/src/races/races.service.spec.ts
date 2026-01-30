@@ -10,8 +10,12 @@ const prismaMock = {
   }
 };
 
+const openF1Mock = {
+  syncSeason: jest.fn()
+};
+
 describe('RacesService', () => {
-  const service = new RacesService(prismaMock as any);
+  const service = new RacesService(prismaMock as any, openF1Mock as any);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,6 +34,7 @@ describe('RacesService', () => {
 
     const race = await service.getNextRace();
 
+    expect(openF1Mock.syncSeason).toHaveBeenCalled();
     expect(race).toEqual({ id: 'race-next' });
   });
 

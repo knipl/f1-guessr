@@ -25,14 +25,15 @@ enum SessionType {
 }
 
 model User {
-  id          String        @id @default(uuid())
-  email       String?       @unique
-  displayName String?
-  createdAt   DateTime      @default(now())
-  memberships GroupMember[]
-  votes       Vote[]
-  scores      Score[]
+  id           String        @id @default(uuid())
+  email        String?       @unique
+  displayName  String?
+  createdAt    DateTime      @default(now())
+  memberships  GroupMember[]
+  votes        Vote[]
+  scores       Score[]
   achievements Achievement[]
+  ownedGroups  Group[]
 }
 
 model Group {
@@ -70,19 +71,20 @@ model GroupInvite {
 }
 
 model Race {
-  id           String      @id @default(uuid())
-  season       Int
-  round        Int
-  name         String
-  circuit      String
-  status       RaceStatus  @default(scheduled)
-  q1StartTime  DateTime
-  raceStartTime DateTime
-  createdAt    DateTime    @default(now())
-  sessions     Session[]
-  results      Result[]
-  votes        Vote[]
-  scores       Score[]
+  id                         String        @id @default(uuid())
+  season                     Int
+  round                      Int
+  name                       String
+  circuit                    String
+  status                     RaceStatus    @default(scheduled)
+  q1StartTime                DateTime
+  raceStartTime              DateTime
+  createdAt                  DateTime      @default(now())
+  sessions                   Session[]
+  results                    Result[]
+  votes                      Vote[]
+  scores                     Score[]
+  achievements               Achievement[]
 
   @@unique([season, round])
 }
@@ -124,16 +126,16 @@ model Result {
 }
 
 model Score {
-  id          String   @id @default(uuid())
-  userId      String
-  raceId      String
-  groupId     String
-  points      Int
-  rankChange  Int
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
-  race        Race     @relation(fields: [raceId], references: [id])
-  group       Group    @relation(fields: [groupId], references: [id])
+  id         String   @id @default(uuid())
+  userId     String
+  raceId     String
+  groupId    String
+  points     Int
+  rankChange Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  race       Race     @relation(fields: [raceId], references: [id])
+  group      Group    @relation(fields: [groupId], references: [id])
 
   @@unique([userId, raceId, groupId])
   @@index([groupId, raceId])
