@@ -12,12 +12,27 @@ enum GroupRole {
   admin
 }
 
+enum RaceStatus {
+  scheduled
+  locked
+  finalized
+}
+
+enum SessionType {
+  practice
+  qualifying
+  race
+}
+
 model User {
   id          String        @id @default(uuid())
   email       String?       @unique
   displayName String?
   createdAt   DateTime      @default(now())
   memberships GroupMember[]
+  votes       Vote[]
+  scores      Score[]
+  achievements Achievement[]
 }
 
 model Group {
@@ -28,6 +43,8 @@ model Group {
   createdAt DateTime      @default(now())
   members   GroupMember[]
   invites   GroupInvite[]
+  votes     Vote[]
+  scores    Score[]
 }
 
 model GroupMember {
@@ -50,4 +67,88 @@ model GroupInvite {
   createdAt DateTime @default(now())
   createdBy String?
   group     Group    @relation(fields: [groupId], references: [id])
+}
+
+model Race {
+  id           String      @id @default(uuid())
+  season       Int
+  round        Int
+  name         String
+  circuit      String
+  status       RaceStatus  @default(scheduled)
+  q1StartTime  DateTime
+  raceStartTime DateTime
+  createdAt    DateTime    @default(now())
+  sessions     Session[]
+  results      Result[]
+  votes        Vote[]
+  scores       Score[]
+
+  @@unique([season, round])
+}
+
+model Session {
+  id        String      @id @default(uuid())
+  raceId    String
+  type      SessionType
+  startTime DateTime
+  race      Race        @relation(fields: [raceId], references: [id])
+
+  @@index([raceId])
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  userId    String
+  raceId    String
+  groupId   String
+  ranking   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+  race      Race     @relation(fields: [raceId], references: [id])
+
+  @@unique([userId, raceId, groupId])
+  @@index([raceId, groupId])
+}
+
+model Result {
+  id        String   @id @default(uuid())
+  raceId    String
+  positions Json
+  updatedAt DateTime @updatedAt
+  race      Race     @relation(fields: [raceId], references: [id])
+
+  @@unique([raceId])
+}
+
+model Score {
+  id          String   @id @default(uuid())
+  userId      String
+  raceId      String
+  groupId     String
+  points      Int
+  rankChange  Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  race        Race     @relation(fields: [raceId], references: [id])
+  group       Group    @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, raceId, groupId])
+  @@index([groupId, raceId])
+}
+
+model Achievement {
+  id        String   @id @default(uuid())
+  userId    String
+  raceId    String?
+  code      String
+  title     String
+  detail    String
+  awardedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  race      Race?    @relation(fields: [raceId], references: [id])
+
+  @@index([userId])
 }
