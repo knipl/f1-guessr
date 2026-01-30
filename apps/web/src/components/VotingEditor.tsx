@@ -18,27 +18,37 @@ function normalizeRanking(drivers: string[], ranking: string[]) {
   return filled.slice(0, 10);
 }
 
+function reorder<T>(items: T[], fromIndex: number, toIndex: number) {
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next;
+}
+
 export default function VotingEditor({ drivers, ranking, locked, onSave }: VotingEditorProps) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [localRanking, setLocalRanking] = useState(() => normalizeRanking(drivers, ranking));
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
-  const usedDrivers = useMemo(
-    () => new Set(localRanking.filter(Boolean)),
-    [localRanking]
-  );
+  const usedDrivers = useMemo(() => new Set(localRanking.filter(Boolean)), [localRanking]);
 
   const canSave =
     localRanking.length === 10 &&
     new Set(localRanking).size === 10 &&
     localRanking.every((value) => value);
 
-  const handleSelect = (index: number, value: string) => {
+  const handleAdd = (driver: string) => {
+    if (locked || !editing) return;
     setLocalRanking((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
+      if (prev.includes(driver) || prev.length >= 10) return prev;
+      return [...prev, driver];
     });
+  };
+
+  const handleRemove = (driver: string) => {
+    if (locked || !editing) return;
+    setLocalRanking((prev) => prev.filter((item) => item !== driver));
   };
 
   const handleSave = async () => {
@@ -46,6 +56,23 @@ export default function VotingEditor({ drivers, ranking, locked, onSave }: Votin
     await onSave(localRanking);
     setSaving(false);
     setEditing(false);
+  };
+
+  const handleDragOver = (index: number) => {
+    if (locked || !editing || dragIndex === null || dragIndex === index) return;
+    setLocalRanking((prev) => reorder(prev, dragIndex, index));
+    setDragIndex(index);
+  };
+
+  const startDrag = (index: number) => {
+    if (locked || !editing) return;
+    setDragIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (locked || !editing || dragIndex === null) return;
+    setLocalRanking((prev) => reorder(prev, dragIndex, index));
+    setDragIndex(null);
   };
 
   return (
@@ -74,32 +101,57 @@ export default function VotingEditor({ drivers, ranking, locked, onSave }: Votin
         </div>
       </div>
 
-      <div className="grid">
-        {localRanking.map((driver, index) => (
-          <div key={`${index}-${driver}`} className="pick">
-            <span className="pos" data-testid="vote-position">
-              P{index + 1}
-            </span>
-            {editing ? (
-              <select
-                value={driver}
-                onChange={(event) => handleSelect(index, event.target.value)}
+      <div className="vote-columns">
+        <div className="vote-column">
+          <h3>Top 10</h3>
+          <div className="vote-list">
+            {localRanking.map((driver, index) => (
+              <div
+                key={`${driver}-${index}`}
+                className={`vote-item ${dragIndex === index ? 'dragging' : ''}`}
+                draggable={!locked && editing}
+                onDragStart={() => startDrag(index)}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  handleDragOver(index);
+                }}
+                onDrop={() => handleDrop(index)}
+                onDragEnd={() => setDragIndex(null)}
+                data-testid="vote-item"
               >
-                {drivers.map((option) => (
-                  <option
-                    key={option}
-                    value={option}
-                    disabled={usedDrivers.has(option) && option !== driver}
-                  >
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span>{driver}</span>
-            )}
+                <span className="pos" data-testid="vote-position">
+                  P{index + 1}
+                </span>
+                <span className="handle" aria-hidden>
+                  ⋮⋮
+                </span>
+                <span>{driver}</span>
+                {editing && !locked && (
+                  <button className="ghost" onClick={() => handleRemove(driver)} aria-label={`Remove ${driver}`}>
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        <div className="vote-column">
+          <h3>Pick drivers</h3>
+          <p className="muted">Tap to add to your top 10. Drag to reorder.</p>
+          <div className="pill-grid">
+            {drivers.map((driver) => (
+              <button
+                key={driver}
+                className={`pill ${usedDrivers.has(driver) ? 'selected' : ''}`}
+                onClick={() => handleAdd(driver)}
+                disabled={!editing || locked || usedDrivers.has(driver) || localRanking.length >= 10}
+              >
+                {driver}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

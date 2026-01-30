@@ -19,7 +19,17 @@ export const mockDrivers = [
   'Piastri',
   'Alonso',
   'Perez',
-  'Albon'
+  'Albon',
+  'Gasly',
+  'Ocon',
+  'Stroll',
+  'Bottas',
+  'Hulkenberg',
+  'Tsunoda',
+  'Ricciardo',
+  'Magnussen',
+  'Zhou',
+  'Sargeant'
 ];
 
 export const mockVotesTable = [
