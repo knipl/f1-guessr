@@ -1,7 +1,18 @@
-import { render, screen } from '@testing-library/react';
 import App from './App';
+import { render, screen } from '@testing-library/react';
+import { useSupabaseSession } from './auth/useSupabaseSession';
+
+vi.mock('./auth/useSupabaseSession', () => ({
+  useSupabaseSession: vi.fn()
+}));
+
+const mockedUseSupabaseSession = vi.mocked(useSupabaseSession);
 
 describe('App', () => {
+  beforeEach(() => {
+    mockedUseSupabaseSession.mockReturnValue({ session: null, loading: false });
+  });
+
   it('shows next race and group name', () => {
     render(<App />);
 

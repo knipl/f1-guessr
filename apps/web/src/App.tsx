@@ -3,7 +3,7 @@ import './index.css';
 
 function formatDate(value: string) {
   const date = new Date(value);
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short'
   }).format(date);
@@ -24,11 +24,11 @@ export default function App() {
           <p className="meta">{mockNextRace.circuit}</p>
           <div className="times">
             <div>
-              <span>Q1</span>
+              <span>Q1 (local)</span>
               <strong>{formatDate(mockNextRace.q1StartTime)}</strong>
             </div>
             <div>
-              <span>Race</span>
+              <span>Race (local)</span>
               <strong>{formatDate(mockNextRace.raceStartTime)}</strong>
             </div>
           </div>
