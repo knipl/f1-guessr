@@ -8,9 +8,10 @@ test('shows next race and group name', async ({ page }) => {
   await expect(page.getByText('Bahrain Grand Prix')).toBeVisible();
 });
 
-test('shows ten picks', async ({ page }) => {
+test('shows standings and achievements', async ({ page }) => {
   await page.goto('/');
 
-  const picks = page.getByText(/P\d+/);
-  await expect(picks).toHaveCount(10);
+  await expect(page.getByText('Season standings')).toBeVisible();
+  await expect(page.getByText('Achievements')).toBeVisible();
+  await expect(page.getByText('Group results (after race)')).toBeVisible();
 });

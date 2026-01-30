@@ -56,6 +56,7 @@ h2 {
   max-width: 420px;
   font-size: 18px;
   color: #3e434c;
+  margin: 4px 0 0;
 }
 
 .race-card {
@@ -101,6 +102,15 @@ h2 {
   font-size: 14px;
 }
 
+.lock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(198, 206, 222, 0.2);
+  font-size: 14px;
+}
+
 .card {
   background: rgba(255, 255, 255, 0.78);
   border-radius: 20px;
@@ -127,80 +137,9 @@ h2 {
   cursor: pointer;
 }
 
-.secondary {
-  border: 1px solid #cbd2dd;
-  background: white;
-  color: #2c313b;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.google {
-  border: none;
-  background: #1b1f2a;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-}
-
-.auth-grid {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) 80px minmax(220px, 1fr);
-  gap: 16px;
-  align-items: center;
-}
-
-.auth-form {
-  display: grid;
-  gap: 12px;
-}
-
-.auth-form label {
-  display: grid;
-  gap: 6px;
-  font-weight: 600;
-  color: #2c313b;
-}
-
-.auth-form input {
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #cbd2dd;
-  font-size: 14px;
-}
-
-.auth-divider {
-  text-align: center;
-  color: #7b8494;
-  font-size: 12px;
-}
-
-.auth-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.notice {
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-}
-
-.notice.success {
-  background: #e6f6ee;
-  color: #1f6c35;
-}
-
-.notice.error {
-  background: #ffe6e6;
-  color: #9a1f1f;
+.primary:disabled {
+  background: #c8ced9;
+  cursor: not-allowed;
 }
 
 .grid {
@@ -240,7 +179,7 @@ h2 {
 
 .table-row {
   display: grid;
-  grid-template-columns: 120px 1fr 70px;
+  grid-template-columns: 140px 1fr 70px;
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
@@ -254,6 +193,14 @@ h2 {
   padding: 0 4px;
 }
 
+.table-row.three {
+  grid-template-columns: 1fr 80px 80px;
+}
+
+.table-row.four {
+  grid-template-columns: 1fr 80px 80px 60px;
+}
+
 .picks {
   color: #4e5460;
   font-size: 13px;
@@ -264,13 +211,29 @@ h2 {
   text-align: right;
 }
 
-@media (max-width: 800px) {
-  .auth-grid {
-    grid-template-columns: 1fr;
-  }
+.chips {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
 
-  .auth-divider {
-    display: none;
+.chip {
+  background: white;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 10px 20px rgba(15, 20, 34, 0.08);
+}
+
+.chip span {
+  color: #5f6675;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .times {
+    flex-direction: column;
   }
 }
 

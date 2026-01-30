@@ -1,5 +1,5 @@
 import App from './App';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { useSupabaseSession } from './auth/useSupabaseSession';
 
 vi.mock('./auth/useSupabaseSession', () => ({
@@ -21,19 +21,29 @@ describe('App', () => {
     expect(screen.getByText('Bahrain Grand Prix')).toBeInTheDocument();
   });
 
-  it('renders ten picks', () => {
+  it('shows vote section and picks', () => {
     render(<App />);
 
-    const picks = screen.getAllByText(/P\d+/);
+    expect(screen.getByText('Your vote')).toBeInTheDocument();
+    const picks = screen.getAllByTestId('vote-position');
     expect(picks).toHaveLength(10);
   });
 
-  it('renders group results table rows', () => {
+  it('shows standings and history sections', () => {
     render(<App />);
 
-    expect(screen.getByText('Group results (after race)')).toBeInTheDocument();
-    expect(screen.getByText('Alex')).toBeInTheDocument();
-    expect(screen.getByText('Maya')).toBeInTheDocument();
-    expect(screen.getByText('Jonas')).toBeInTheDocument();
+    expect(screen.getByText('Season standings')).toBeInTheDocument();
+    expect(screen.getByText('Race history')).toBeInTheDocument();
+    expect(screen.getByText('Achievements')).toBeInTheDocument();
+  });
+
+  it('shows group results table', () => {
+    render(<App />);
+
+    const groupResults = screen.getByTestId('group-results');
+    expect(within(groupResults).getByText('Group results (after race)')).toBeInTheDocument();
+    expect(within(groupResults).getByText('Alex')).toBeInTheDocument();
+    expect(within(groupResults).getByText('Maya')).toBeInTheDocument();
+    expect(within(groupResults).getByText('Jonas')).toBeInTheDocument();
   });
 });
