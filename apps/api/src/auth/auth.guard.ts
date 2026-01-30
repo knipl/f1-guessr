@@ -7,12 +7,13 @@ export class AuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;
+    const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
 
-    if (!authHeader?.startsWith('Bearer ')) {
+    if (!headerValue?.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing bearer token');
     }
 
-    const token = authHeader.slice('Bearer '.length);
+    const token = headerValue.slice('Bearer '.length);
 
     try {
       const user = verifySupabaseToken(token, process.env.SUPABASE_JWT_SECRET || '');

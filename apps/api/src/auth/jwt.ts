@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 export interface AuthUser {
   id: string;
@@ -11,7 +11,7 @@ export function verifySupabaseToken(token: string, secret: string): AuthUser {
     throw new Error('SUPABASE_JWT_SECRET is not set');
   }
 
-  const payload = jwt.verify(token, secret) as JwtPayload;
+  const payload = jwt.verify(token, secret) as { sub?: string; email?: string; role?: string };
   const sub = payload.sub;
 
   if (!sub) {
