@@ -18,6 +18,7 @@ vi.mock('./api/hooks', () => ({
     },
     loading: false
   }),
+  useDrivers: () => ({ data: [{ name: 'A', number: 1, team: null }], loading: false }),
   useStandings: () => ({ data: [{ userId: 'u1', name: 'Alex', points: 100 }], loading: false }),
   useMyVote: () => ({ data: { id: 'v1', ranking: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] } }),
   useGroupResults: () => ({

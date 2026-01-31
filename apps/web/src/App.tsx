@@ -4,6 +4,7 @@ import VotingEditor from './components/VotingEditor';
 import { useSupabaseSession } from './auth/useSupabaseSession';
 import {
   Group,
+  useDrivers,
   useGroupResults,
   useGroups,
   useMyVote,
@@ -55,9 +56,13 @@ export default function App() {
   const { data: groups } = useGroups();
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const { data: nextRace } = useNextRace();
+  const isTestingSession =
+    nextRace && 'date_start' in nextRace && !('raceStartTime' in nextRace);
+  const race = !isTestingSession ? (nextRace as any) : null;
+  const { data: driversData } = useDrivers();
   const { data: standings } = useStandings(activeGroupId ?? undefined);
-  const { data: vote } = useMyVote(nextRace?.id, activeGroupId ?? undefined);
-  const { data: groupResults } = useGroupResults(nextRace?.id, activeGroupId ?? undefined);
+  const { data: vote } = useMyVote(race?.id, activeGroupId ?? undefined);
+  const { data: groupResults } = useGroupResults(race?.id, activeGroupId ?? undefined);
 
   useEffect(() => {
     if (!activeGroupId && groups && groups.length > 0) {
@@ -65,7 +70,7 @@ export default function App() {
     }
   }, [activeGroupId, groups]);
 
-  const q1Start = useMemo(() => (nextRace ? new Date(nextRace.q1StartTime) : undefined), [nextRace]);
+  const q1Start = useMemo(() => (race ? new Date(race.q1StartTime) : undefined), [race]);
   const [countdown, setCountdown] = useState(() => formatCountdown(q1Start));
 
   useEffect(() => {
@@ -79,13 +84,13 @@ export default function App() {
   const isLocked = countdown === 'Locked';
 
   const groupName = resolveGroupName(groups ?? null);
-  const drivers = mockDrivers;
-  const ranking = vote?.ranking ?? mockDrivers;
+  const drivers = driversData?.map((driver) => driver.name) ?? mockDrivers;
+  const ranking = vote?.ranking ?? drivers;
 
   const handleSaveVote = async (rankingDraft: string[]) => {
-    if (!nextRace || !activeGroupId) return;
+    if (!race || !activeGroupId) return;
     await submitVote({
-      raceId: nextRace.id,
+      raceId: race.id,
       groupId: activeGroupId,
       ranking: rankingDraft
     });
@@ -115,18 +120,26 @@ export default function App() {
         </div>
         <div className="race-card">
           <p className="label">Next race</p>
-          <h2>{nextRace?.name ?? 'Loading…'}</h2>
-          <p className="meta">{nextRace?.circuit ?? 'Fetching schedule'}</p>
+          <h2>{race?.name ?? (isTestingSession ? 'Pre‑season testing' : 'No upcoming race')}</h2>
+          <p className="meta">{race?.circuit ?? (isTestingSession ? 'Bahrain International Circuit' : 'Check back soon')}</p>
           <div className="times">
             <div>
               <span>Q1 (local)</span>
-              <strong>{formatDate(nextRace?.q1StartTime)}</strong>
+              <strong>{formatDate(race?.q1StartTime)}</strong>
             </div>
             <div>
               <span>Race (local)</span>
-              <strong>{formatDate(nextRace?.raceStartTime)}</strong>
+              <strong>{formatDate(race?.raceStartTime)}</strong>
             </div>
           </div>
+          {isTestingSession ? (
+            <div className="testing-block">
+              <span>Pre‑season testing</span>
+              <div className="testing-dates">
+                <strong>{formatDate((nextRace as any).date_start)}</strong>
+              </div>
+            </div>
+          ) : null}
           <div className="lock-row">
             <span>Voting locks in</span>
             <strong>{countdown}</strong>

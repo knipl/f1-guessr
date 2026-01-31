@@ -21,6 +21,12 @@ export class RacesService {
     await this.openF1Service.syncSeason(year + 1);
 
     const now = new Date();
+    const upcomingTesting = await this.openF1Service.fetchTestingSessions(year);
+    const nextTesting = upcomingTesting
+      .map((session) => ({ session, date: new Date(session.date_start) }))
+      .filter(({ date }) => date > now)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
+
     const race = await this.prisma.race.findFirst({
       where: {
         raceStartTime: { gt: now }
@@ -28,8 +34,19 @@ export class RacesService {
       orderBy: { raceStartTime: 'asc' }
     });
 
-    if (!race) {
-      throw new NotFoundException('No upcoming race found');
+    if (!race && !nextTesting) {
+      return null;
+    }
+
+    if (!race && nextTesting) {
+      return nextTesting.session;
+    }
+
+    if (race && nextTesting) {
+      const raceDate = new Date(race.raceStartTime);
+      if (nextTesting.date < raceDate) {
+        return nextTesting.session;
+      }
     }
 
     return race;

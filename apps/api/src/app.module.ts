@@ -4,9 +4,10 @@ import { GroupsModule } from './groups/groups.module';
 import { RacesModule } from './races/races.module';
 import { VotesModule } from './votes/votes.module';
 import { AdminModule } from './admin/admin.module';
+import { DriversModule } from './drivers/drivers.module';
 
 @Module({
   controllers: [HealthController],
-  imports: [GroupsModule, RacesModule, VotesModule, AdminModule]
+  imports: [GroupsModule, RacesModule, VotesModule, AdminModule, DriversModule]
 })
 export class AppModule {}

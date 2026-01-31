@@ -8,14 +8,18 @@ describe('VotingEditor', () => {
     render(<VotingEditor drivers={drivers} ranking={drivers} locked={false} onSave={() => {}} />);
 
     expect(screen.getAllByTestId('vote-position')).toHaveLength(10);
-    expect(screen.getByText('Your vote')).toBeInTheDocument();
+    expect(screen.getByText('Pick drivers')).toBeInTheDocument();
   });
 
-  it('allows entering edit mode', () => {
-    render(<VotingEditor drivers={drivers} ranking={drivers} locked={false} onSave={() => {}} />);
+  it('allows entering edit mode and adding a driver', () => {
+    render(<VotingEditor drivers={drivers} ranking={['A']} locked={false} onSave={() => {}} />);
 
     fireEvent.click(screen.getByText('Edit picks'));
-    expect(screen.getByText('Save picks')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText('B')[1]);
+
+    const items = screen.getAllByTestId('vote-item');
+    expect(items).toHaveLength(10);
+    expect(items[1]).toHaveTextContent('B');
   });
 
   it('disables edit when locked', () => {

@@ -1,4 +1,4 @@
-import { mapMeetings } from './openf1.service';
+import { mapDrivers, mapMeetings, mapTestingSessions } from './openf1.service';
 
 describe('mapMeetings', () => {
   it('maps race + qualifying per meeting', () => {
@@ -43,5 +43,34 @@ describe('mapMeetings', () => {
 
     const meetings = mapMeetings(sessions as any);
     expect(meetings).toHaveLength(0);
+  });
+
+  it('maps drivers to display data', () => {
+    const drivers = [
+      {
+        driver_number: 44,
+        full_name: 'Lewis Hamilton',
+        last_name: 'Hamilton',
+        team_name: 'Mercedes',
+        session_key: 123
+      }
+    ];
+
+    const mapped = mapDrivers(drivers as any);
+    expect(mapped).toEqual([{ name: 'Hamilton', number: 44, team: 'Mercedes' }]);
+  });
+
+  it('maps testing sessions', () => {
+    const sessions = [
+      {
+        session_name: 'Day 1',
+        session_type: 'Practice',
+        meeting_key: 1304,
+        date_start: '2026-02-11T07:00:00Z'
+      }
+    ];
+
+    const mapped = mapTestingSessions(sessions as any);
+    expect(mapped).toEqual([{ name: 'Day 1', date_start: '2026-02-11T07:00:00Z' }]);
   });
 });

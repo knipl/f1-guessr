@@ -15,6 +15,11 @@ export interface Race {
   status: string;
 }
 
+export interface TestingSession {
+  name: string;
+  date_start: string;
+}
+
 export interface Vote {
   id: string;
   ranking: string[];
@@ -29,6 +34,12 @@ export interface StandingRow {
 export interface GroupResultRow {
   user: { id: string; displayName?: string; email?: string };
   points: number;
+}
+
+export interface DriverInfo {
+  name: string;
+  number: number;
+  team: string | null;
 }
 
 function useApiData<T>(loader: () => Promise<T>, deps: unknown[]) {
@@ -67,7 +78,7 @@ export function useGroups() {
 }
 
 export function useNextRace() {
-  return useApiData(() => apiClient.get<Race>('/races/next'), []);
+  return useApiData(() => apiClient.get<Race | TestingSession | null>('/races/next'), []);
 }
 
 export function useStandings(groupId?: string) {
@@ -89,6 +100,10 @@ export function useMyVote(raceId?: string, groupId?: string) {
     () => apiClient.get<Vote | null>(`/votes/me?raceId=${raceId ?? ''}&groupId=${groupId ?? ''}`),
     [raceId, groupId]
   );
+}
+
+export function useDrivers() {
+  return useApiData(() => apiClient.get<DriverInfo[]>('/drivers'), []);
 }
 
 export async function submitVote(payload: { raceId: string; groupId: string; ranking: string[] }) {

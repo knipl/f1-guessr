@@ -134,6 +134,21 @@ h3 {
   font-size: 14px;
 }
 
+.testing-block {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #c6cede;
+}
+
+.testing-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 600;
+  color: #f5f7fb;
+}
+
 .card {
   background: rgba(255, 255, 255, 0.78);
   border-radius: 20px;

@@ -13,6 +13,14 @@ interface OpenF1Session {
   year: number;
 }
 
+interface OpenF1Driver {
+  driver_number: number;
+  full_name: string;
+  last_name: string;
+  team_name?: string;
+  session_key: number;
+}
+
 interface MeetingBundle {
   meetingKey: number;
   race: OpenF1Session;
@@ -24,6 +32,8 @@ const ONE_HOUR = 60 * 60 * 1000;
 @Injectable()
 export class OpenF1Service {
   private lastSyncAt = 0;
+  private driversCache: { timestamp: number; drivers: OpenF1Driver[] } | null = null;
+  private testingCache: { timestamp: number; sessions: OpenF1Session[] } | null = null;
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -55,6 +65,39 @@ export class OpenF1Service {
     }
 
     return response.json();
+  }
+
+  async fetchDrivers() {
+    if (this.driversCache && Date.now() - this.driversCache.timestamp < ONE_HOUR) {
+      return mapDrivers(this.driversCache.drivers);
+    }
+
+    const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
+    if (!response.ok) {
+      return [];
+    }
+
+    const drivers = (await response.json()) as OpenF1Driver[];
+    this.driversCache = { timestamp: Date.now(), drivers };
+
+    return mapDrivers(drivers);
+  }
+
+  async fetchTestingSessions(year: number) {
+    if (this.testingCache && Date.now() - this.testingCache.timestamp < ONE_HOUR) {
+      return mapTestingSessions(this.testingCache.sessions);
+    }
+
+    const sessions = await this.fetchSessions(year);
+    const filtered = sessions.filter((session) => {
+      const name = session.session_name?.toLowerCase() ?? '';
+      const meetingKey = session.meeting_key;
+      return (meetingKey === 1304 || meetingKey === 1305) && name.startsWith('day');
+    });
+
+    this.testingCache = { timestamp: Date.now(), sessions: filtered };
+
+    return mapTestingSessions(filtered);
   }
 
   private async upsertRace(year: number, round: number, meeting: MeetingBundle) {
@@ -110,11 +153,36 @@ export function mapMeetings(sessions: OpenF1Session[]): MeetingBundle[] {
     grouped.set(session.meeting_key, entry);
   }
 
-  return [...grouped.entries()]
+  const meetings = [...grouped.entries()]
     .filter(([, value]) => Boolean(value.race))
     .map(([meetingKey, value]) => ({
       meetingKey,
       race: value.race as OpenF1Session,
       qualifying: value.qualifying
+    }));
+
+  return meetings;
+}
+
+export function mapDrivers(drivers: OpenF1Driver[]) {
+  return [...drivers]
+    .sort((a, b) => a.driver_number - b.driver_number)
+    .map((driver) => ({
+      name: driver.last_name || driver.full_name,
+      number: driver.driver_number,
+      team: driver.team_name ?? null
+    }));
+}
+
+export function mapTestingSessions(sessions: OpenF1Session[]) {
+  return sessions
+    .filter((session) => {
+      const name = session.session_name?.toLowerCase() ?? '';
+      const meetingKey = session.meeting_key;
+      return (meetingKey === 1304 || meetingKey === 1305) && name.startsWith('day');
+    })
+    .map((session) => ({
+      name: session.session_name,
+      date_start: session.date_start
     }));
 }
