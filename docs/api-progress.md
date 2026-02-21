@@ -15,6 +15,12 @@
   - `POST /votes` (upsert vote, locks at Q1 start)
 - Admin endpoint:
   - `POST /admin/races/:raceId/results` (sets results, computes scores, finalizes race)
+  - `POST /admin/races/:raceId/sessions` (creates/updates session and adjusts race times)
+  - `GET /admin/races/:raceId/sessions` (lists sessions ordered by start time)
+  - `GET /admin/races` (admin list)
+  - `POST /admin/races` (create)
+  - `PATCH /admin/races/:raceId` (update)
+  - `DELETE /admin/races/:raceId` (delete)
 
 ## Assumptions
 - OpenF1 sessions are used to derive race start + qualifying start; meeting name uses location/country fallback.

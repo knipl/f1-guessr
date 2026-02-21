@@ -7,6 +7,20 @@ vi.mock('./auth/useSupabaseSession', () => ({
 
 vi.mock('./api/hooks', () => ({
   useGroups: () => ({ data: [{ id: 'g1', name: 'Friends League' }], loading: false }),
+  useAdminRaces: () => ({ data: [], loading: false }),
+  useRaces: () => ({
+    data: [
+      {
+        id: 'r1',
+        name: 'Bahrain Grand Prix',
+        circuit: 'Bahrain International Circuit',
+        q1StartTime: '2026-03-07T13:00:00Z',
+        raceStartTime: '2026-03-08T15:00:00Z',
+        status: 'scheduled'
+      }
+    ],
+    loading: false
+  }),
   useNextRace: () => ({
     data: {
       id: 'r1',
@@ -25,7 +39,13 @@ vi.mock('./api/hooks', () => ({
     data: [{ user: { id: 'u1', displayName: 'Alex' }, points: 40 }],
     loading: false
   }),
-  submitVote: vi.fn()
+  submitVote: vi.fn(),
+  submitRaceResults: vi.fn(),
+  submitRaceSession: vi.fn(),
+  useRaceSessions: () => ({ data: [] }),
+  createRace: vi.fn(),
+  updateRace: vi.fn(),
+  deleteRace: vi.fn()
 }));
 
 vi.mock('./mockData', () => ({
@@ -37,12 +57,28 @@ vi.mock('./mockData', () => ({
 }));
 
 describe('App', () => {
+  beforeEach(() => {
+    window.history.pushState({}, '', '/');
+  });
   it('shows next race and group name', () => {
     render(<App />);
 
     expect(screen.getByText('Friends League')).toBeInTheDocument();
     expect(screen.getByText('Next race')).toBeInTheDocument();
     expect(screen.getByText('Bahrain Grand Prix')).toBeInTheDocument();
+  });
+
+  it('shows sign-in card when signed out', () => {
+    render(<App />);
+
+    expect(screen.getByText('Sign in')).toBeInTheDocument();
+  });
+
+  it('renders admin page on /admin', () => {
+    window.history.pushState({}, '', '/admin');
+    render(<App />);
+
+    expect(screen.getByText('Sign in')).toBeInTheDocument();
   });
 
   it('shows vote section and picks', () => {
@@ -59,5 +95,11 @@ describe('App', () => {
     const groupResults = screen.getByTestId('group-results');
     expect(within(groupResults).getByText('Group results (after race)')).toBeInTheDocument();
     expect(within(groupResults).getByText('Alex')).toBeInTheDocument();
+  });
+
+  it('hides admin tools for signed-out users', () => {
+    render(<App />);
+
+    expect(screen.queryByTestId('admin-panel')).not.toBeInTheDocument();
   });
 });

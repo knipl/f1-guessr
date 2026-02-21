@@ -35,7 +35,7 @@ export class OpenF1Service {
   private driversCache: { timestamp: number; drivers: OpenF1Driver[] } | null = null;
   private testingCache: { timestamp: number; sessions: OpenF1Session[] } | null = null;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async syncSeason(year: number) {
     const now = Date.now();
@@ -91,8 +91,7 @@ export class OpenF1Service {
     const sessions = await this.fetchSessions(year);
     const filtered = sessions.filter((session) => {
       const name = session.session_name?.toLowerCase() ?? '';
-      const meetingKey = session.meeting_key;
-      return (meetingKey === 1304 || meetingKey === 1305) && name.startsWith('day');
+      return name.startsWith('day');
     });
 
     this.testingCache = { timestamp: Date.now(), sessions: filtered };
@@ -178,8 +177,7 @@ export function mapTestingSessions(sessions: OpenF1Session[]) {
   return sessions
     .filter((session) => {
       const name = session.session_name?.toLowerCase() ?? '';
-      const meetingKey = session.meeting_key;
-      return (meetingKey === 1304 || meetingKey === 1305) && name.startsWith('day');
+      return name.startsWith('day');
     })
     .map((session) => ({
       name: session.session_name,

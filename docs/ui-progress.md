@@ -6,8 +6,10 @@
 - Group selector appears only when multiple groups exist.
 - Season standings and group results fetch from API (fallback to mock data).
 - Drivers list fetches from API (fallback to mock data).
+- Admin tools panel (signed-in only) for races CRUD and qualifying session updates on `/admin`.
+- Results/score admin tools still on main page for now.
 - Race history and achievements still mocked.
-- Invite-only banner shown when not signed in (auth UI hidden).
+- Invite-only banner shown when not signed in (auth UI visible for sign-in).
 
 ## Assumptions
 - Drivers list uses OpenF1 data (last name) if available.

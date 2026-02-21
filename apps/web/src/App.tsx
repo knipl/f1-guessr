@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import InviteNotice from './components/InviteNotice';
+import AuthCard from './auth/AuthCard';
 import VotingEditor from './components/VotingEditor';
+import AdminPage from './admin/AdminPage';
 import { useSupabaseSession } from './auth/useSupabaseSession';
 import {
   Group,
@@ -52,6 +54,10 @@ function resolveGroupName(groups: Group[] | null) {
 }
 
 export default function App() {
+  if (window.location.pathname.startsWith('/admin')) {
+    return <AdminPage />;
+  }
+
   const { session } = useSupabaseSession();
   const { data: groups } = useGroups();
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
@@ -95,6 +101,7 @@ export default function App() {
       ranking: rankingDraft
     });
   };
+
 
   return (
     <main className="page">
@@ -148,6 +155,7 @@ export default function App() {
       </header>
 
       {!session && <InviteNotice />}
+      {<AuthCard />}
 
       <section className="card">
         <VotingEditor drivers={drivers} ranking={ranking} locked={isLocked} onSave={handleSaveVote} />
@@ -232,6 +240,12 @@ export default function App() {
           ))}
         </div>
       </section>
+
+      {session && driversData ? (
+        <section className="card" data-testid="admin-panel">
+          <p className="sub">Admin tools are now available at /admin.</p>
+        </section>
+      ) : null}
     </main>
   );
 }

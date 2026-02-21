@@ -4,7 +4,7 @@ import { AuthUser, verifySupabaseToken } from './jwt';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;
     const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
@@ -16,11 +16,15 @@ export class AuthGuard implements CanActivate {
     const token = headerValue.slice('Bearer '.length);
 
     try {
-      const user = verifySupabaseToken(token, process.env.SUPABASE_JWT_SECRET || '');
+      const user = await verifySupabaseToken(token, process.env.SUPABASE_JWT_SECRET || '');
       (request as Request & { user?: AuthUser }).user = user;
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      const message =
+        process.env.NODE_ENV === 'production'
+          ? 'Invalid token'
+          : `Invalid token (${error instanceof Error ? error.message : 'unknown error'})`;
+      throw new UnauthorizedException(message);
     }
   }
 }

@@ -65,7 +65,7 @@ describe('mapMeetings', () => {
       {
         session_name: 'Day 1',
         session_type: 'Practice',
-        meeting_key: 1304,
+        meeting_key: 9999,
         date_start: '2026-02-11T07:00:00Z'
       }
     ];

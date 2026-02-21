@@ -13,6 +13,8 @@ export interface Race {
   q1StartTime: string;
   raceStartTime: string;
   status: string;
+  season?: number;
+  round?: number;
 }
 
 export interface TestingSession {
@@ -40,6 +42,13 @@ export interface DriverInfo {
   name: string;
   number: number;
   team: string | null;
+}
+
+export interface RaceSession {
+  id: string;
+  raceId: string;
+  type: 'practice' | 'qualifying' | 'race';
+  startTime: string;
 }
 
 function useApiData<T>(loader: () => Promise<T>, deps: unknown[]) {
@@ -77,6 +86,10 @@ export function useGroups() {
   return useApiData(() => apiClient.get<Group[]>('/groups'), []);
 }
 
+export function useRaces() {
+  return useApiData(() => apiClient.get<Race[]>('/races'), []);
+}
+
 export function useNextRace() {
   return useApiData(() => apiClient.get<Race | TestingSession | null>('/races/next'), []);
 }
@@ -106,6 +119,62 @@ export function useDrivers() {
   return useApiData(() => apiClient.get<DriverInfo[]>('/drivers'), []);
 }
 
+export function useRaceSessions(raceId?: string, refreshKey = 0) {
+  return useApiData(
+    () => {
+      if (!raceId) return Promise.resolve([] as RaceSession[]);
+      return apiClient.get<RaceSession[]>(`/admin/races/${raceId}/sessions`);
+    },
+    [raceId, refreshKey]
+  );
+}
+
 export async function submitVote(payload: { raceId: string; groupId: string; ranking: string[] }) {
   return apiClient.post<Vote>('/votes', payload);
+}
+
+export async function submitRaceResults(raceId: string, positions: string[]) {
+  return apiClient.post(`/admin/races/${raceId}/results`, { positions });
+}
+
+export async function submitRaceSession(
+  raceId: string,
+  payload: { type: 'practice' | 'qualifying' | 'race'; startTime: string }
+) {
+  return apiClient.post(`/admin/races/${raceId}/sessions`, payload);
+}
+
+export function useAdminRaces(refreshKey = 0) {
+  return useApiData(() => apiClient.get<Race[]>('/admin/races'), [refreshKey]);
+}
+
+export async function createRace(payload: {
+  season: number;
+  round: number;
+  name: string;
+  circuit: string;
+  q1StartTime: string;
+  raceStartTime: string;
+  status?: string;
+}) {
+  return apiClient.post<Race>('/admin/races', payload);
+}
+
+export async function updateRace(
+  raceId: string,
+  payload: Partial<{
+    season: number;
+    round: number;
+    name: string;
+    circuit: string;
+    q1StartTime: string;
+    raceStartTime: string;
+    status?: string;
+  }>
+) {
+  return apiClient.patch<Race>(`/admin/races/${raceId}`, payload);
+}
+
+export async function deleteRace(raceId: string) {
+  return apiClient.delete(`/admin/races/${raceId}`);
 }

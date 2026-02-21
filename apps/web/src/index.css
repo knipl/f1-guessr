@@ -170,6 +170,11 @@ h3 {
   gap: 16px;
 }
 
+.hero-actions {
+  display: flex;
+  gap: 12px;
+}
+
 .primary {
   border: none;
   background: #ff4d3f;
@@ -218,6 +223,12 @@ h3 {
 .vote-list {
   display: grid;
   gap: 10px;
+}
+
+.admin-list {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .vote-item {
@@ -289,6 +300,59 @@ h3 {
 
 .pill {
   font-size: 14px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.admin-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  color: #2b2f3a;
+}
+
+.admin-field select {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: white;
+}
+
+.admin-field input {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: white;
+}
+
+.admin-help {
+  font-size: 13px;
+  color: #5b6270;
+  display: grid;
+  gap: 6px;
+}
+
+.admin-status {
+  margin: 0;
+  font-weight: 600;
+}
+
+.admin-status.success {
+  color: #1a7f37;
+}
+
+.admin-status.error {
+  color: #c03f3f;
+}
+
+.admin-sessions {
+  display: grid;
+  gap: 12px;
 }
 
 .table {
