@@ -21,6 +21,10 @@ vi.mock('../api/hooks', async () => {
   };
 });
 
+vi.mock('../auth/useSupabaseSession', () => ({
+  useSupabaseSession: () => ({ session: { user: { email: 'admin@example.com' } }, loading: false })
+}));
+
 describe('AdminRaceManager', () => {
   it('creates a race from the form', async () => {
     racesState.value = [];

@@ -30,6 +30,16 @@ const prismaMock = {
   achievement: {
     deleteMany: jest.fn()
   },
+  group: {
+    findUnique: jest.fn(),
+    create: jest.fn()
+  },
+  groupInvite: {
+    create: jest.fn()
+  },
+  user: {
+    upsert: jest.fn()
+  },
   $transaction: jest.fn()
 };
 
@@ -107,6 +117,27 @@ describe('AdminService', () => {
 
     expect(result).toEqual({ id: 'race-1' });
     expect(prismaMock.$transaction).toHaveBeenCalled();
+  });
+
+  it('creates a group invite', async () => {
+    prismaMock.group.findUnique.mockResolvedValue({ id: 'group-1' });
+    prismaMock.groupInvite.create.mockResolvedValue({ id: 'invite-1' });
+
+    const invite = await service.createGroupInvite('group-1', 'admin@example.com');
+
+    expect(invite).toEqual({ id: 'invite-1' });
+    expect(prismaMock.groupInvite.create).toHaveBeenCalled();
+  });
+
+  it('creates a group', async () => {
+    prismaMock.group.create.mockResolvedValue({ id: 'group-1', name: 'Friends' });
+    prismaMock.user.upsert.mockResolvedValue({ id: 'user-1' });
+
+    const group = await service.createGroup('Friends', 'user-1', 'admin@example.com', 'admin@example.com');
+
+    expect(group).toEqual({ id: 'group-1', name: 'Friends' });
+    expect(prismaMock.group.create).toHaveBeenCalled();
+    expect(prismaMock.user.upsert).toHaveBeenCalled();
   });
 
   it('creates a session and updates race timing', async () => {

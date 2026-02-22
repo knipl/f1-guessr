@@ -29,6 +29,12 @@ export class GroupsService {
       throw new NotFoundException('Invite not found or expired');
     }
 
+    await this.prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: { id: userId }
+    });
+
     await this.prisma.groupMember.upsert({
       where: {
         groupId_userId: {
@@ -44,5 +50,15 @@ export class GroupsService {
     });
 
     return invite.group;
+  }
+
+  async getDefaultGroup(userId: string) {
+    const membership = await this.prisma.groupMember.findFirst({
+      where: { userId },
+      include: { group: true },
+      orderBy: { joinedAt: 'asc' }
+    });
+
+    return membership?.group ?? null;
   }
 }

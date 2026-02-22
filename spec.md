@@ -74,7 +74,8 @@
 - Provide a race history view with prior races.
 
 ### 6.6 Admin Panel
-- CRUD races and qualifying sessions (via `/admin` route).
+- CRUD races (via `/admin` route).
+- Create groups and generate invite links.
 - Override session times (e.g., if schedule changes).
 - Manually input or correct official race results.
 - Trigger re‑scoring for a race or entire season.

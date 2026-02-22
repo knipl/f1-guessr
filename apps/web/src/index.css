@@ -40,6 +40,13 @@ body {
   gap: 12px;
 }
 
+.sub-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .group-row select {
   padding: 6px 10px;
   border-radius: 10px;
@@ -175,6 +182,62 @@ h3 {
   gap: 12px;
 }
 
+.admin-page {
+  grid-template-columns: 260px 1fr;
+}
+
+.admin-sidebar {
+  background: rgba(20, 23, 31, 0.92);
+  color: #f8f9fc;
+  border-radius: 20px;
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+  min-height: calc(100vh - 120px);
+}
+
+.admin-brand h1 {
+  margin: 6px 0 0;
+}
+
+.admin-nav {
+  display: grid;
+  gap: 10px;
+}
+
+.nav-link {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 600;
+}
+
+.nav-link.active {
+  background: #ff4d3f;
+  border-color: #ff4d3f;
+  color: white;
+}
+
+.admin-content {
+  display: grid;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .admin-page {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    min-height: unset;
+  }
+}
+
 .primary {
   border: none;
   background: #ff4d3f;
@@ -242,6 +305,32 @@ h3 {
   gap: 10px;
 }
 
+.vote-item.placeholder {
+  opacity: 0.65;
+  box-shadow: none;
+  background: #f3f5f9;
+  border: 1px dashed #d5dbe6;
+}
+
+.placeholder-line {
+  display: block;
+  height: 10px;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e3e7ef 0%, #f7f9fc 50%, #e3e7ef 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+.placeholder-pill {
+  height: 34px;
+  width: 88px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e3e7ef 0%, #f7f9fc 50%, #e3e7ef 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
 .vote-item.dragging {
   border: 2px dashed #ff4d3f;
   background: #fff5f3;
@@ -282,6 +371,15 @@ h3 {
   border-color: #1f2937;
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .pill:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -290,6 +388,25 @@ h3 {
 .pos {
   font-weight: 700;
   color: #ff4d3f;
+}
+
+.driver-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .grid {

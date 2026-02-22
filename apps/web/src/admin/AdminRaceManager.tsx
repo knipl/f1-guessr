@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import AdminLayout from './AdminLayout';
 import { createRace, deleteRace, updateRace, useAdminRaces } from '../api/hooks';
 
 const emptyForm = {
@@ -144,13 +145,14 @@ export default function AdminRaceManager() {
   };
 
   return (
-    <section className="card">
-      <div className="card-head">
-        <div>
-          <h2>Race management</h2>
-          <p className="sub">Create, edit, or remove races and qualifying sessions.</p>
+    <AdminLayout title="Races">
+      <section className="card">
+        <div className="card-head">
+          <div>
+            <h3>Race management</h3>
+            <p className="sub">Create, edit, or remove races.</p>
+          </div>
         </div>
-      </div>
 
       {loading && <p className="sub">Loading races…</p>}
       {error && <p className="notice error">{error}</p>}
@@ -250,5 +252,6 @@ export default function AdminRaceManager() {
         </div>
       </div>
     </section>
+    </AdminLayout>
   );
 }

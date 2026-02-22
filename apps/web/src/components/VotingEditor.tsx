@@ -1,21 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface VotingEditorProps {
-  drivers: string[];
+  drivers: { name: string; team?: string | null }[];
   ranking: string[];
   locked: boolean;
   onSave: (ranking: string[]) => Promise<void> | void;
 }
 
-function normalizeRanking(drivers: string[], ranking: string[]) {
-  const filled = [...ranking];
-  for (const driver of drivers) {
-    if (filled.length >= 10) break;
-    if (!filled.includes(driver)) {
-      filled.push(driver);
-    }
-  }
-  return filled.slice(0, 10);
+function normalizeRanking(ranking: string[]) {
+  return ranking.filter(Boolean).slice(0, 10);
 }
 
 function reorder<T>(items: T[], fromIndex: number, toIndex: number) {
@@ -28,8 +21,18 @@ function reorder<T>(items: T[], fromIndex: number, toIndex: number) {
 export default function VotingEditor({ drivers, ranking, locked, onSave }: VotingEditorProps) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [localRanking, setLocalRanking] = useState(() => normalizeRanking(drivers, ranking));
+  const [localRanking, setLocalRanking] = useState(() => normalizeRanking(ranking));
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const driverMap = useMemo(
+    () => new Map(drivers.map((driver) => [driver.name, driver.team ?? null])),
+    [drivers]
+  );
+
+  useEffect(() => {
+    if (!editing) {
+      setLocalRanking(normalizeRanking(ranking));
+    }
+  }, [editing, ranking]);
 
   const usedDrivers = useMemo(() => new Set(localRanking.filter(Boolean)), [localRanking]);
 
@@ -73,6 +76,17 @@ export default function VotingEditor({ drivers, ranking, locked, onSave }: Votin
     if (locked || !editing || dragIndex === null) return;
     setLocalRanking((prev) => reorder(prev, dragIndex, index));
     setDragIndex(null);
+  };
+
+  const getTeamBadge = (driverName: string) => {
+    const team = driverMap.get(driverName);
+    if (!team) return null;
+    const badge = teamBadge(team);
+    return (
+      <span className="team-badge" style={{ background: badge.color }} title={team}>
+        {badge.label}
+      </span>
+    );
   };
 
   return (
@@ -125,7 +139,10 @@ export default function VotingEditor({ drivers, ranking, locked, onSave }: Votin
                 <span className="handle" aria-hidden>
                   ⋮⋮
                 </span>
-                <span>{driver}</span>
+                <span className="driver-name">
+                  {driver}
+                  {getTeamBadge(driver)}
+                </span>
                 {editing && !locked && (
                   <button className="ghost" onClick={() => handleRemove(driver)} aria-label={`Remove ${driver}`}>
                     ×
@@ -142,12 +159,14 @@ export default function VotingEditor({ drivers, ranking, locked, onSave }: Votin
           <div className="pill-grid">
             {drivers.map((driver) => (
               <button
-                key={driver}
-                className={`pill ${usedDrivers.has(driver) ? 'selected' : ''}`}
-                onClick={() => handleAdd(driver)}
-                disabled={!editing || locked || usedDrivers.has(driver) || localRanking.length >= 10}
+                key={driver.name}
+                className={`pill ${usedDrivers.has(driver.name) ? 'selected' : ''}`}
+                onClick={() => handleAdd(driver.name)}
+                disabled={
+                  !editing || locked || usedDrivers.has(driver.name) || localRanking.length >= 10
+                }
               >
-                {driver}
+                {driver.name}
               </button>
             ))}
           </div>
@@ -155,4 +174,23 @@ export default function VotingEditor({ drivers, ranking, locked, onSave }: Votin
       </div>
     </div>
   );
+}
+
+function teamBadge(team: string) {
+  const key = team.toLowerCase();
+  const map: Record<string, { label: string; color: string }> = {
+    mercedes: { label: 'MER', color: '#00D2BE' },
+    ferrari: { label: 'FER', color: '#DC0000' },
+    'red bull racing': { label: 'RED', color: '#060193ff' },
+    mclaren: { label: 'MCL', color: '#FF8700' },
+    'aston martin': { label: 'AST', color: '#006F62' },
+    alpine: { label: 'ALP', color: '#FF87BC' },
+    williams: { label: 'WIL', color: '#005AFF' },
+    'haas f1 team': { label: 'HAA', color: '#5a5a5aff' },
+    'racing bulls': { label: 'RAC', color: '#2B4562' },
+    audi: { label: 'AUD', color: '#c3c3c3ff' },
+    cadillac: { label: 'CAD', color: '#151515ff' },
+  };
+
+  return map[key] ?? { label: team.slice(0, 3).toUpperCase(), color: '#3b3f48' };
 }

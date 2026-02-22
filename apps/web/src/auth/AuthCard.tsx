@@ -37,21 +37,6 @@ export default function AuthCard() {
     setMessage('Check your email for a sign-in link.');
   };
 
-  const handleGoogle = async () => {
-    setWorking(true);
-    setError('');
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-
-    if (oauthError) {
-      setError(oauthError.message);
-      setWorking(false);
-    }
-  };
 
   const handleSignOut = async () => {
     setWorking(true);
@@ -91,12 +76,6 @@ export default function AuthCard() {
               Send magic link
             </button>
           </form>
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
-          <button className="google" onClick={handleGoogle} disabled={working}>
-            Continue with Google
-          </button>
         </div>
       )}
 

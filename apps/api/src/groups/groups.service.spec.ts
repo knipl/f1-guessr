@@ -3,10 +3,14 @@ import { GroupsService } from './groups.service';
 const prismaMock = {
   groupMember: {
     findMany: jest.fn(),
+    findFirst: jest.fn(),
     upsert: jest.fn()
   },
   groupInvite: {
     findFirst: jest.fn()
+  },
+  user: {
+    upsert: jest.fn()
   }
 };
 
@@ -45,6 +49,7 @@ describe('GroupsService', () => {
 
     expect(group).toEqual({ id: 'g1', name: 'Friends' });
     expect(prismaMock.groupMember.upsert).toHaveBeenCalled();
+    expect(prismaMock.user.upsert).toHaveBeenCalled();
   });
 
   it('throws if invite is missing or expired', async () => {
@@ -53,5 +58,15 @@ describe('GroupsService', () => {
     await expect(service.joinByInvite('user-1', 'bad-token')).rejects.toThrow(
       'Invite not found or expired'
     );
+  });
+
+  it('returns default group for user', async () => {
+    prismaMock.groupMember.findFirst = jest.fn().mockResolvedValue({
+      group: { id: 'g1', name: 'Friends' }
+    });
+
+    const group = await service.getDefaultGroup('user-1');
+
+    expect(group).toEqual({ id: 'g1', name: 'Friends' });
   });
 });

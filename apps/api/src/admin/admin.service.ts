@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { RaceStatus, SessionType } from '@prisma/client';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { computeScore } from '../scores/score.util';
 
@@ -101,6 +102,54 @@ export class AdminService {
         q1StartTime,
         raceStartTime,
         status: payload.status ?? 'scheduled'
+      }
+    });
+  }
+
+  async createGroup(name: string, ownerId: string, ownerEmail: string | undefined, adminEmail?: string) {
+    this.assertAdmin(adminEmail);
+    if (!name.trim()) {
+      throw new BadRequestException('Group name is required');
+    }
+
+    await this.prisma.user.upsert({
+      where: { id: ownerId },
+      update: { email: ownerEmail ?? undefined },
+      create: { id: ownerId, email: ownerEmail ?? null }
+    });
+
+    return this.prisma.group.create({
+      data: {
+        name: name.trim(),
+        ownerId,
+        members: {
+          create: {
+            userId: ownerId,
+            role: 'admin'
+          }
+        }
+      }
+    });
+  }
+
+  async createGroupInvite(groupId: string, adminEmail?: string) {
+    this.assertAdmin(adminEmail);
+
+    const group = await this.prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const ttlDays = Number(process.env.GROUP_INVITE_TTL_DAYS ?? '7');
+    const expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000);
+    const token = randomBytes(16).toString('hex');
+
+    return this.prisma.groupInvite.create({
+      data: {
+        groupId,
+        token,
+        expiresAt,
+        createdBy: adminEmail ?? null
       }
     });
   }

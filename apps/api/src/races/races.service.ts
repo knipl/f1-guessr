@@ -52,6 +52,7 @@ export class RacesService {
     return race;
   }
 
+
   async getGroupResults(raceId: string, groupId: string) {
     return this.prisma.score.findMany({
       where: { raceId, groupId },

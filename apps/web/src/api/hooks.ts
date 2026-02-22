@@ -82,8 +82,12 @@ function useApiData<T>(loader: () => Promise<T>, deps: unknown[]) {
   return { data, loading, error };
 }
 
-export function useGroups() {
-  return useApiData(() => apiClient.get<Group[]>('/groups'), []);
+export function useGroups(refreshKey = 0) {
+  return useApiData(() => apiClient.get<Group[]>('/groups'), [refreshKey]);
+}
+
+export function useDefaultGroup() {
+  return useApiData(() => apiClient.get<Group | null>('/groups/me'), []);
 }
 
 export function useRaces() {
@@ -108,10 +112,10 @@ export function useGroupResults(raceId?: string, groupId?: string) {
   );
 }
 
-export function useMyVote(raceId?: string, groupId?: string) {
+export function useMyVote(raceId?: string, groupId?: string, refreshKey = 0) {
   return useApiData(
     () => apiClient.get<Vote | null>(`/votes/me?raceId=${raceId ?? ''}&groupId=${groupId ?? ''}`),
-    [raceId, groupId]
+    [raceId, groupId, refreshKey]
   );
 }
 
@@ -177,4 +181,16 @@ export async function updateRace(
 
 export async function deleteRace(raceId: string) {
   return apiClient.delete(`/admin/races/${raceId}`);
+}
+
+export async function createGroupInvite(groupId: string) {
+  return apiClient.post<{ token: string; expiresAt: string }>(`/admin/groups/${groupId}/invites`, {});
+}
+
+export async function joinGroupByInvite(token: string) {
+  return apiClient.post<Group>(`/invites/${token}/join`, {});
+}
+
+export async function createAdminGroup(name: string) {
+  return apiClient.post<Group>('/admin/groups', { name });
 }

@@ -15,6 +15,7 @@ export class RacesController {
     return this.racesService.getNextRace();
   }
 
+
   @Get(':raceId/results')
   getResults(@Param('raceId') raceId: string, @Query('groupId') groupId: string) {
     return this.racesService.getGroupResults(raceId, groupId);

@@ -1,17 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import AdminPage from './AdminPage';
+import AdminLayout from './AdminLayout';
 
 vi.mock('../auth/useSupabaseSession', () => ({
   useSupabaseSession: () => ({ session: { user: { email: 'admin@example.com' } }, loading: false })
 }));
 
-vi.mock('./AdminRaceManager', () => ({
-  default: () => <div>Race Manager</div>
-}));
-
-describe('AdminPage', () => {
+describe('AdminLayout', () => {
   it('shows back button when signed in', () => {
-    render(<AdminPage />);
+    render(
+      <AdminLayout title="Test">
+        <div>Content</div>
+      </AdminLayout>
+    );
 
     expect(screen.getByText('Back to app')).toBeInTheDocument();
   });

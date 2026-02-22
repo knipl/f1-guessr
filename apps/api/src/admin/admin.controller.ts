@@ -34,6 +34,10 @@ interface RaceUpdateBody {
   status?: RaceStatus;
 }
 
+interface GroupBody {
+  name: string;
+}
+
 @Controller('admin')
 @UseGuards(AuthGuard)
 export class AdminController {
@@ -70,6 +74,16 @@ export class AdminController {
   @Delete('races/:raceId')
   deleteRace(@CurrentUser() user: AuthUser, @Param('raceId') raceId: string) {
     return this.adminService.deleteRace(raceId, user.email);
+  }
+
+  @Post('groups/:groupId/invites')
+  createInvite(@CurrentUser() user: AuthUser, @Param('groupId') groupId: string) {
+    return this.adminService.createGroupInvite(groupId, user.email);
+  }
+
+  @Post('groups')
+  createGroup(@CurrentUser() user: AuthUser, @Body() body: GroupBody) {
+    return this.adminService.createGroup(body.name, user.id, user.email, user.email);
   }
 
   @Post('races/:raceId/sessions')

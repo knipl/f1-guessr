@@ -14,6 +14,11 @@ export class GroupsController {
     return this.groupsService.listGroupsForUser(user.id);
   }
 
+  @Get('/groups/me')
+  async getDefaultGroup(@CurrentUser() user: AuthUser) {
+    return this.groupsService.getDefaultGroup(user.id);
+  }
+
   @Post('/invites/:token/join')
   async joinGroup(@CurrentUser() user: AuthUser, @Param('token') token: string) {
     return this.groupsService.joinByInvite(user.id, token);

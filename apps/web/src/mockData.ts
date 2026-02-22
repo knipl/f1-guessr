@@ -10,26 +10,27 @@ export const mockNextRace = {
 };
 
 export const mockDrivers = [
-  'Verstappen',
-  'Leclerc',
-  'Hamilton',
-  'Norris',
-  'Russell',
-  'Sainz',
-  'Piastri',
-  'Alonso',
-  'Perez',
-  'Albon',
-  'Gasly',
-  'Ocon',
-  'Stroll',
-  'Bottas',
-  'Hulkenberg',
-  'Tsunoda',
-  'Ricciardo',
-  'Magnussen',
-  'Zhou',
-  'Sargeant'
+  { name: 'Verstappen', team: 'Red Bull' },
+  { name: 'Leclerc', team: 'Ferrari' },
+  { name: 'Hamilton', team: 'Mercedes' },
+  { name: 'Norris', team: 'McLaren' },
+  { name: 'Russell', team: 'Mercedes' },
+  { name: 'Sainz', team: 'Ferrari' },
+  { name: 'Piastri', team: 'McLaren' },
+  { name: 'Alonso', team: 'Aston Martin' },
+  { name: 'Perez', team: 'Red Bull' },
+  { name: 'Albon', team: 'Williams' },
+  { name: 'Gasly', team: 'Alpine' },
+  { name: 'Ocon', team: 'Alpine' },
+  { name: 'Stroll', team: 'Aston Martin' },
+  { name: 'Bottas', team: 'Sauber' },
+  { name: 'Hulkenberg', team: 'Haas' },
+  { name: 'Hadjar', team: 'RB' },
+  { name: 'Bortoleto', team: 'Sauber' },
+  { name: 'Lawson', team: 'RB' },
+  { name: 'Lindblad', team: 'RB' },
+  { name: 'Bearman', team: 'Haas' },
+  { name: 'Antonelli', team: 'Mercedes' }
 ];
 
 export const mockVotesTable = [

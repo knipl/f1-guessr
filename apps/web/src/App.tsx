@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import InviteNotice from './components/InviteNotice';
 import AuthCard from './auth/AuthCard';
+import { supabase } from './auth/supabaseClient';
 import VotingEditor from './components/VotingEditor';
-import AdminPage from './admin/AdminPage';
+import AdminRaceManager from './admin/AdminRaceManager';
+import AdminGroupsPage from './admin/AdminGroupsPage';
+import AdminInviteManager from './admin/AdminInviteManager';
+import JoinPage from './groups/JoinPage';
 import { useSupabaseSession } from './auth/useSupabaseSession';
 import {
   Group,
+  useDefaultGroup,
   useDrivers,
   useGroupResults,
   useGroups,
@@ -33,7 +38,7 @@ function formatDate(value?: string) {
 }
 
 function formatCountdown(target?: Date) {
-  if (!target) return 'TBD';
+  if (!target) return 'Loading..';
   const diff = target.getTime() - Date.now();
   if (diff <= 0) return 'Locked';
 
@@ -55,26 +60,47 @@ function resolveGroupName(groups: Group[] | null) {
 
 export default function App() {
   if (window.location.pathname.startsWith('/admin')) {
-    return <AdminPage />;
+    if (window.location.pathname === '/admin/groups') {
+      return <AdminGroupsPage />;
+    }
+    if (window.location.pathname === '/admin/invites') {
+      return <AdminInviteManager />;
+    }
+    return <AdminRaceManager />;
+  }
+  if (window.location.pathname.startsWith('/join/')) {
+    const token = window.location.pathname.replace('/join/', '');
+    return <JoinPage token={token} />;
   }
 
   const { session } = useSupabaseSession();
   const { data: groups } = useGroups();
+  const { data: defaultGroup } = useDefaultGroup();
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const { data: nextRace } = useNextRace();
   const isTestingSession =
     nextRace && 'date_start' in nextRace && !('raceStartTime' in nextRace);
   const race = !isTestingSession ? (nextRace as any) : null;
-  const { data: driversData } = useDrivers();
+  const { data: driversData, loading: driversLoading } = useDrivers();
+  const [voteRefreshKey, setVoteRefreshKey] = useState(0);
+  const [optimisticVote, setOptimisticVote] = useState<string[] | null>(null);
   const { data: standings } = useStandings(activeGroupId ?? undefined);
-  const { data: vote } = useMyVote(race?.id, activeGroupId ?? undefined);
+  const { data: vote, loading: voteLoading } = useMyVote(
+    race?.id,
+    activeGroupId ?? undefined,
+    voteRefreshKey
+  );
   const { data: groupResults } = useGroupResults(race?.id, activeGroupId ?? undefined);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!activeGroupId && groups && groups.length > 0) {
       setActiveGroupId(groups[0].id);
     }
-  }, [activeGroupId, groups]);
+    if (!activeGroupId && defaultGroup) {
+      setActiveGroupId(defaultGroup.id);
+    }
+  }, [activeGroupId, defaultGroup, groups]);
 
   const q1Start = useMemo(() => (race ? new Date(race.q1StartTime) : undefined), [race]);
   const [countdown, setCountdown] = useState(() => formatCountdown(q1Start));
@@ -82,7 +108,7 @@ export default function App() {
   useEffect(() => {
     const id = window.setInterval(() => {
       setCountdown(formatCountdown(q1Start));
-    }, 60_000);
+    }, 2_000);
 
     return () => window.clearInterval(id);
   }, [q1Start]);
@@ -90,16 +116,32 @@ export default function App() {
   const isLocked = countdown === 'Locked';
 
   const groupName = resolveGroupName(groups ?? null);
-  const drivers = driversData?.map((driver) => driver.name) ?? mockDrivers;
-  const ranking = vote?.ranking ?? drivers;
+  const driverOptions =
+    driversData?.map((driver) => ({ name: driver.name, team: driver.team })) ?? mockDrivers;
+  const ranking = optimisticVote ?? vote?.ranking ?? [];
+  const showVoteLoading = driversLoading || (race && voteLoading);
+
+  useEffect(() => {
+    if (vote) {
+      setOptimisticVote(null);
+    }
+  }, [vote]);
 
   const handleSaveVote = async (rankingDraft: string[]) => {
     if (!race || !activeGroupId) return;
+    setOptimisticVote(rankingDraft);
     await submitVote({
       raceId: race.id,
       groupId: activeGroupId,
       ranking: rankingDraft
     });
+    setVoteRefreshKey((value) => value + 1);
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await supabase.auth.signOut();
+    setLoggingOut(false);
   };
 
 
@@ -123,7 +165,14 @@ export default function App() {
               </select>
             )}
           </div>
-          <p className="sub">Predict the top 10 before Q1. Edit until lock.</p>
+          <div className="sub-row">
+            <p className="sub">Predict the top 10 before Q1. Edit until lock.</p>
+            {session && (
+              <button className="secondary" onClick={handleLogout} disabled={loggingOut}>
+                {loggingOut ? 'Signing out…' : 'Sign out'}
+              </button>
+            )}
+          </div>
         </div>
         <div className="race-card">
           <p className="label">Next race</p>
@@ -155,10 +204,54 @@ export default function App() {
       </header>
 
       {!session && <InviteNotice />}
-      {<AuthCard />}
+      {!session && <AuthCard />}
 
       <section className="card">
-        <VotingEditor drivers={drivers} ranking={ranking} locked={isLocked} onSave={handleSaveVote} />
+        {showVoteLoading ? (
+          <div className="vote-editor">
+            <div className="card-head">
+              <div>
+                <h2>Your vote</h2>
+                <p className="sub">Loading your picks…</p>
+              </div>
+              <div className="vote-actions">
+                <button className="primary" disabled>
+                  Loading…
+                </button>
+              </div>
+            </div>
+            <div className="vote-columns">
+              <div className="vote-column">
+                <h3>Top 10</h3>
+                <div className="vote-list">
+                  {Array.from({ length: 10 }).map((_, index) => (
+                    <div key={index} className="vote-item placeholder" aria-hidden="true">
+                      <span className="pos">P{index + 1}</span>
+                      <span className="handle">⋮⋮</span>
+                      <span className="placeholder-line" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="vote-column">
+                <h3>Pick drivers</h3>
+                <p className="muted">Fetching drivers…</p>
+                <div className="pill-grid">
+                  {Array.from({ length: 20 }).map((_, index) => (
+                    <div key={index} className="pill placeholder-pill" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <VotingEditor
+            drivers={driverOptions}
+            ranking={ranking}
+            locked={isLocked}
+            onSave={handleSaveVote}
+          />
+        )}
       </section>
 
       <section className="card" data-testid="season-standings">

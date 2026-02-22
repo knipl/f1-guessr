@@ -75,6 +75,7 @@ describe('RacesService', () => {
     expect(result).toEqual({ name: 'Day 1', date_start: expect.any(String) });
   });
 
+
   it('returns group results', async () => {
     prismaMock.score.findMany.mockResolvedValue([{ id: 'score-1' }]);
 

@@ -6,8 +6,9 @@
 - Group selector appears only when multiple groups exist.
 - Season standings and group results fetch from API (fallback to mock data).
 - Drivers list fetches from API (fallback to mock data).
-- Admin tools panel (signed-in only) for races CRUD and qualifying session updates on `/admin`.
-- Results/score admin tools still on main page for now.
+- Admin tools panel with sidebar sections: `/admin/races`, `/admin/groups`, `/admin/invites`.
+- Admin can create groups and generate invite links.
+- Join flow available at `/join/:token`.
 - Race history and achievements still mocked.
 - Invite-only banner shown when not signed in (auth UI visible for sign-in).
 

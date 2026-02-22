@@ -13,6 +13,8 @@
 - Authenticated endpoints:
   - `GET /votes/me?raceId=...&groupId=...`
   - `POST /votes` (upsert vote, locks at Q1 start)
+  - `GET /groups/me` (default group)
+  - `POST /invites/:token/join` (join by invite token)
 - Admin endpoint:
   - `POST /admin/races/:raceId/results` (sets results, computes scores, finalizes race)
   - `POST /admin/races/:raceId/sessions` (creates/updates session and adjusts race times)
@@ -21,6 +23,8 @@
   - `POST /admin/races` (create)
   - `PATCH /admin/races/:raceId` (update)
   - `DELETE /admin/races/:raceId` (delete)
+  - `POST /admin/groups/:groupId/invites` (create invite link)
+  - `POST /admin/groups` (create group)
 
 ## Assumptions
 - OpenF1 sessions are used to derive race start + qualifying start; meeting name uses location/country fallback.
@@ -30,6 +34,5 @@
 - Scoring uses exact match only and F1 points for positions 1–10.
 
 ## Next API steps
-- Add group context resolution (default to user’s only group).
 - Add achievements awarding logic.
 - Add standings rank change calculations.
